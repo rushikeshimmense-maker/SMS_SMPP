@@ -1,0 +1,44 @@
+import fs from 'fs';
+let code = fs.readFileSync('frontend/src/pages/Reports.jsx', 'utf8');
+
+// 1. Add state
+code = code.replace(
+  "const [routeFilter, setRouteFilter] = useState({ dateRange: { from: '', to: '' } })",
+  "const [xDroppedFilter, setXDroppedFilter] = useState({ userId: 'all', dateRange: { from: '', to: '' } })\n  const [routeFilter, setRouteFilter] = useState({ dateRange: { from: '', to: '' } })"
+);
+
+// 2. Add useMemo
+const xDroppedRowsCode = `
+  const xDroppedRows = useMemo(() => {
+    return messages.filter((m) => {
+      if (m.status !== 'dropped') return false;
+      if (xDroppedFilter.userId !== 'all' && m.userId !== xDroppedFilter.userId) return false;
+      if (xDroppedFilter.dateRange?.from || xDroppedFilter.dateRange?.to) {
+        const t = m.submittedAt || m.createdAt;
+        if (!t) return false;
+        const d = t.split('T')[0];
+        if (xDroppedFilter.dateRange.from && d < xDroppedFilter.dateRange.from) return false;
+        if (xDroppedFilter.dateRange.to && d > xDroppedFilter.dateRange.to) return false;
+      }
+      return true;
+    });
+  }, [messages, xDroppedFilter]);
+`;
+
+code = code.replace(
+  "const creditRows = useMemo(() => {",
+  xDroppedRowsCode + "\n  const creditRows = useMemo(() => {"
+);
+
+// 3. Update UI
+const oldUI = /\{tab === 'X-Dropped' && <Card><div className="mb-4 flex flex-wrap gap-3"><select className=\{\`\$\{inputCls\} sm:max-w-\[220px\]\`\} disabled><option>Dropped Status Only<\/option><\/select><Button variant="secondary" className="sm:ml-auto" onClick=\{\(\) => exportRows\(messages.filter\(m => m.status === 'dropped'\), 'xdropped-report'\)\}><DownloadIcon className="h-\[18px\] w-\[18px\]" \/> Export<\/Button><\/div><Table headers=\{\['ID', 'Time', 'Sender ID', 'To', 'Cost', 'Status', 'Drop Reason'\]\}>\{messages\.filter\(m => m\.status === 'dropped'\)\.length \? messages\.filter\(m => m\.status === 'dropped'\)\.map\(\(r\) => <tr key=\{r\.id\}><Td className="font-mono text-\[11px\] text-gray-400">\{r\.id\}<\/Td><Td>\{fmtTime\(r\.createdAt\)\}<\/Td><Td className="font-bold text-ink">\{r\.from\}<\/Td><Td className="font-mono text-\[13px\]">\{r\.to\}<\/Td><Td>\{fmtMoney\(0\.02\)\}<\/Td><Td><Chip status=\{r\.status\} \/><\/Td><Td className="max-w-\[200px\] truncate text-amber-600 font-semibold">Smart Cut \(Option X\)<\/Td><\/tr>\) : <EmptyRow colSpan=\{7\} text="No X-dropped messages found" \/><\/Table><\/Card>\}/;
+
+const newUI = `{tab === 'X-Dropped' && <Card><div className="mb-4 flex flex-wrap gap-3">{isStaff && <select className={\`\${inputCls} sm:max-w-[280px]\`} value={xDroppedFilter.userId} onChange={(e) => setXDroppedFilter({ ...xDroppedFilter, userId: e.target.value })}><option value="all">All users</option>{users.map((u) => <option key={u.id} value={u.id}>{u.companyName}</option>)}</select>}<select className={\`\${inputCls} sm:max-w-[220px]\`} disabled><option>Dropped Status Only</option></select><DateRangePicker value={xDroppedFilter.dateRange} onChange={(r) => setXDroppedFilter({ ...xDroppedFilter, dateRange: r })} /><Button variant="secondary" className="sm:ml-auto" onClick={() => exportRows(xDroppedRows, 'xdropped-report')}><DownloadIcon className="h-[18px] w-[18px]" /> Export</Button></div><Table headers={['ID', 'Time', 'Sender ID', 'To', 'Cost', 'Status', 'Drop Reason']}>{xDroppedRows.length ? xDroppedRows.map((r) => <tr key={r.id}><Td className="font-mono text-[11px] text-gray-400">{r.id}</Td><Td>{fmtTime(r.createdAt)}</Td><Td className="font-bold text-ink">{r.from}</Td><Td className="font-mono text-[13px]">{r.to}</Td><Td>{fmtMoney(0.02)}</Td><Td><Chip status={r.status} /></Td><Td className="max-w-[200px] truncate text-amber-600 font-semibold">Smart Cut (Option X)</Td></tr>) : <EmptyRow colSpan={7} text="No X-dropped messages found" />}</Table></Card>}`;
+
+if (oldUI.test(code)) {
+  code = code.replace(oldUI, newUI);
+  fs.writeFileSync('frontend/src/pages/Reports.jsx', code);
+  console.log('Success updating X-Dropped filters');
+} else {
+  console.log('Failed to match X-dropped UI string');
+}

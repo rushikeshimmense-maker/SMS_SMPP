@@ -1,0 +1,30 @@
+import { spawn } from 'node:child_process'
+import process from 'node:process'
+
+const viteArgs = process.argv.slice(2)
+const api = spawn(process.execPath, ['server/index.js'], {
+  stdio: 'inherit',
+  env: { ...process.env, NODE_ENV: 'development' },
+})
+const web = spawn(process.execPath, ['node_modules/vite/bin/vite.js', ...viteArgs], {
+  stdio: 'inherit',
+  env: process.env,
+})
+
+let stopping = false
+function stop(code = 0) {
+  if (stopping) return
+  stopping = true
+  if (!api.killed) api.kill('SIGTERM')
+  if (!web.killed) web.kill('SIGTERM')
+  setTimeout(() => process.exit(code), 100).unref()
+}
+
+api.on('exit', (code) => {
+  if (!stopping) stop(code || 1)
+})
+web.on('exit', (code) => {
+  if (!stopping) stop(code || 0)
+})
+process.on('SIGINT', () => stop(0))
+process.on('SIGTERM', () => stop(0))

@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  /* White-label platform theme */
+  --color-brand-50: #fff1f2;
+  --color-brand-100: #ffe0e2;
+  --color-brand-200: #ffc5c9;
+  --color-brand-300: #ff9aa1;
+  --color-brand-400: #ff5a63;
+  --color-brand-500: #f4212b;
+  --color-brand-600: #e30613;
+  --color-brand-700: #c10e1e;
+  --color-brand-800: #9d0a18;
+  --color-brand-900: #7d0914;
+
+  --color-ink: #14142b;
+  --color-muted: #6b7280;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* Mobile: 16px inputs stop iOS Safari from zooming on focus */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Hide scrollbar on the mobile drawer nav */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Left hero surface ---------- */
+.hero-surface {
+  background:
+    radial-gradient(1100px 640px at 88% -12%, rgba(255, 106, 114, 0.5), transparent 62%),
+    radial-gradient(820px 560px at -12% 108%, rgba(96, 4, 15, 0.6), transparent 58%),
+    linear-gradient(148deg, #e30613 0%, #c8101f 44%, #8f0a18 100%);
+}
+
+/* ---------- Micro-illustration helpers ---------- */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes floaty-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(0deg);
+  }
+}
+
+.animate-floaty {
+  animation: floaty 5.5s ease-in-out infinite;
+}
+
+.animate-floaty-slow {
+  animation: floaty-slow 7s ease-in-out infinite;
+}
+
+@keyframes nx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: nx-spin 0.8s linear infinite;
+}
+
+/* Soft device shadows */
+.laptop-shadow {
+  filter: drop-shadow(0 22px 28px rgba(40, 0, 6, 0.38));
+}
+
+.phone-shadow {
+  filter: drop-shadow(0 24px 30px rgba(40, 0, 6, 0.42));
+}
